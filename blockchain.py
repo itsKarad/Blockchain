@@ -1,46 +1,31 @@
+# Imports
 from hashlib import sha256
 import json
 from hash_util import find_hash
+from proof_of_work import verify_proof_of_work, proof_of_work
 
-# Initializing our (empty) blockchain list
+
+# Initializing our blockchain with genesis block
 GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "nonce": "100"}
 blockchain = [GENESIS_BLOCK]
-open_transactions = []
-MINER_REWARD = 200
-participants = {"miner"}
-MINING_DIFFICULTY = 3
-
-
-def find_proof_of_work(transactions, prev_hash, nonce):
-    input_string = (str(transactions) + str(prev_hash) + str(nonce)).encode()
-    hash = sha256(input_string).hexdigest()
-    return hash[0:MINING_DIFFICULTY] == "000"
-
-
-def verify_proof_of_work(transactions, prev_hash, nonce):
-    input_string = (str(transactions) + str(prev_hash) + str(nonce)).encode()
-    hash = sha256(input_string).hexdigest()
-    return hash[0:MINING_DIFFICULTY] == "000"
-
-
-def proof_of_work():
-    prev_hash = find_hash(blockchain[-1])
-    nonce = 1
-    print("⛏ Mining started")
-    while not find_proof_of_work(open_transactions, prev_hash, nonce):
-        nonce += 1
-    print("⛏Mining ended with nonce " + str(nonce))
-    return nonce
+open_transactions = []  # Stores unmined & pending transactions
+MINER_REWARD = 200  # Miner reward for completing PoW
+participants = {"miner"}  # This address gets the reward (for now)
 
 
 def get_last_blockchain_value():
-    """Returns the last value of the current blockchain."""
+    """
+    Returns the last value of the current blockchain
+    """
     if len(blockchain) < 1:
         return None
     return blockchain[-1]
 
 
 def verify_transaction(transaction):
+    """
+    Verifies if transaction is possible with sender's wallet balance
+    """
     if get_balance(transaction["sender"]) >= transaction["amount"]:
         return True
     return False
@@ -65,7 +50,7 @@ def add_transaction(sender, recipient, amount=1.0):
 
 def mine_block():
     """
-    Creates a new block and adds it to the chain
+    Creates a new block, verifies proof of work, rewards miners and adds the block to the blockchain
     """
     previous_block_hash = find_hash(blockchain[-1])
     reward_transaction = {
@@ -74,7 +59,7 @@ def mine_block():
         "amount": MINER_REWARD,
     }
     print("Started proof of work")
-    proof = proof_of_work()
+    proof = proof_of_work(open_transactions, previous_block_hash)
     print("Finished proof of work with proof {}".format(proof))
     open_transactions_copy = open_transactions[:]
     open_transactions_copy.append(reward_transaction)
@@ -88,6 +73,9 @@ def mine_block():
 
 
 def get_balance(participant):
+    """
+    Gets balance of a participant from existing transactions on the blockchain
+    """
     participant_transactions = []
     balance = 0.0
     for block in blockchain:
@@ -130,7 +118,7 @@ def get_user_choice():
 
 def get_participant():
     """
-    Utility function to get participant name
+    Utility function to get participant's name
     """
     user_input = input("Enter name of participant: ")
     return user_input
@@ -147,7 +135,7 @@ def print_blockchain_elements():
 
 def verify_chain():
     """
-    Verifies if the blockchain is still valid
+    Verifies if the blockchain is still valid by (a) checking previous_hash for each block (b) Verifying PoW for each block
     """
     prev_hash = find_hash(GENESIS_BLOCK)
     for block in blockchain:
@@ -160,6 +148,8 @@ def verify_chain():
         prev_hash = find_hash(block)
     return True
 
+
+# Main
 
 waiting_for_input = True
 print("Please choose")
