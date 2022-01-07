@@ -3,3 +3,9 @@ class Transaction:
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
+
+    # Overriding __repr__() changes behaviour of print()
+    def __repr__(self):
+        return "Sender: {}, Recipient: {}, Amount: {}".format(
+            self.sender, self.recipient, self.amount
+        )

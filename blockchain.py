@@ -177,7 +177,6 @@ def print_blockchain_elements():
     Outputting all blocks in the blockchain
     """
     for block in blockchain:
-        print("Outputting Block")
         print(block)
 
 
