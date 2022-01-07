@@ -36,7 +36,7 @@ def fetch_data():
             # Remove \n
             blockchain = json.loads(file_content[0][:-1])
             open_transactions = json.loads(file_content[1])
-    except:
+    except IOError:
         # File not found
         blockchain = [GENESIS_BLOCK]
         open_transactions = []
