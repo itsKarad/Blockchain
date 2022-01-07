@@ -6,4 +6,5 @@ def find_hash(block):
     """
     Finds hash of a block
     """
-    return sha256(json.dumps(block).encode()).hexdigest()
+    hashable_block = block.__dict__.copy()
+    return sha256(json.dumps(hashable_block).encode()).hexdigest()

@@ -4,10 +4,13 @@ import json
 import pickle
 from hash_util import find_hash
 from proof_of_work import verify_proof_of_work, proof_of_work
+from block import Block
+from time import time
 
-
-# Initializing our blockchain with genesis block
-GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "nonce": "100"}
+# Initializing empty blockchain
+GENESIS_BLOCK = Block(
+    index=0, previous_hash="", transactions=[], nonce="17", timestamp=time()
+)
 blockchain = []
 open_transactions = []  # Stores unmined & pending transactions
 MINER_REWARD = 200  # Miner reward for completing PoW
@@ -19,7 +22,8 @@ def save_data():
     Saves blockchain & open_transactions to a text file
     """
     with open("data.txt", mode="w") as f:
-        f.write(json.dumps(blockchain))
+        saveable_blockchain = [block.__dict__ for block in blockchain]
+        f.write(json.dumps(saveable_blockchain))
         f.write("\n")
         f.write(json.dumps(open_transactions))
 
@@ -34,7 +38,16 @@ def fetch_data():
             global blockchain
             global open_transactions
             # Remove \n
-            blockchain = json.loads(file_content[0][:-1])
+            recovered_blockchain = json.loads(file_content[0][:-1])
+            for block in recovered_blockchain:
+                recovered_block = Block(
+                    block["index"],
+                    block["previous_hash"],
+                    block["transactions"],
+                    block["nonce"],
+                    block["timestamp"],
+                )
+                blockchain.append(recovered_block)
             open_transactions = json.loads(file_content[1])
     except:
         # File not found
@@ -97,12 +110,12 @@ def mine_block():
     print("Finished proof of work with proof {}".format(proof))
     open_transactions_copy = open_transactions[:]
     open_transactions_copy.append(reward_transaction)
-    new_block = {
-        "previous_hash": previous_block_hash,
-        "index": len(blockchain),
-        "transactions": open_transactions_copy,
-        "nonce": proof,
-    }
+    new_block = Block(
+        index=len(blockchain),
+        previous_hash=previous_block_hash,
+        transactions=open_transactions_copy,
+        nonce=proof,
+    )
     blockchain.append(new_block)
     save_data()
 
@@ -114,7 +127,7 @@ def get_balance(participant):
     participant_transactions = []
     balance = 0.0
     for block in blockchain:
-        for transaction in block["transactions"]:
+        for transaction in block.transactions:
             if transaction["recipient"] == participant:
                 balance += transaction["amount"]
                 participant_transactions.append(transaction)
@@ -122,14 +135,6 @@ def get_balance(participant):
                 balance -= transaction["amount"]
                 participant_transactions.append(transaction)
     # Not including open transactions in balance of a participant
-    """
-    for transaction in open_transactions:
-        if transaction["sender"] == participant:
-            balance -= transaction["amount"]
-    for transaction in open_transactions:
-        if transaction["recipient"] == participant:
-            balance += transaction["amount"]
-    """
     return balance
 
 
@@ -174,11 +179,11 @@ def verify_chain():
     """
     prev_hash = find_hash(GENESIS_BLOCK)
     for block in blockchain:
-        if block["index"] == 0:
+        if block.index == 0:
             continue
-        if block["previous_hash"] != prev_hash:
+        if block.previous_hash != prev_hash:
             return False
-        if verify_proof_of_work(block["transactions"], prev_hash, block["nonce"]):
+        if verify_proof_of_work(block.transactions, prev_hash, block.nonce):
             return False
         prev_hash = find_hash(block)
     return True
@@ -219,12 +224,6 @@ while waiting_for_input:
         print("Balance of {} is: {:6.3f}".format(participant, get_balance(participant)))
     elif user_choice == "5":
         print(participants)
-    elif user_choice == "h":
-        blockchain[0] = {
-            "previous_hash": "",
-            "index": 0,
-            "transactions": [{"sender": "Chris", "recipient": "Max", "amount": 2200}],
-        }
     elif user_choice == "q":
         waiting_for_input = False
     else:
