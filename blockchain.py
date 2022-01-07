@@ -7,10 +7,33 @@ from proof_of_work import verify_proof_of_work, proof_of_work
 
 # Initializing our blockchain with genesis block
 GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "nonce": "100"}
-blockchain = [GENESIS_BLOCK]
+blockchain = []
 open_transactions = []  # Stores unmined & pending transactions
 MINER_REWARD = 200  # Miner reward for completing PoW
 participants = {"miner"}  # This address gets the reward (for now)
+
+
+def save_data():
+    """
+    Saves blockchain & open_transactions to a text file
+    """
+    with open("data.txt", mode="w") as f:
+        f.write(json.dumps(blockchain))
+        f.write("\n")
+        f.write(json.dumps(open_transactions))
+
+
+def fetch_data():
+    """
+    Fetches data upon start from data.txt file
+    """
+    with open("data.txt", mode="r") as f:
+        file_content = f.readlines()
+        global blockchain
+        global open_transactions
+        # Remove \n
+        blockchain = json.loads(file_content[0][:-1])
+        open_transactions = json.loads(file_content[1])
 
 
 def get_last_blockchain_value():
@@ -46,6 +69,7 @@ def add_transaction(sender, recipient, amount=1.0):
     participants.add(sender)
     participants.add(recipient)
     open_transactions.append(new_transaction)
+    save_data()
 
 
 def mine_block():
@@ -70,6 +94,7 @@ def mine_block():
         "nonce": proof,
     }
     blockchain.append(new_block)
+    save_data()
 
 
 def get_balance(participant):
@@ -149,6 +174,9 @@ def verify_chain():
     return True
 
 
+# Loading data
+fetch_data()
+print(blockchain)
 # Main
 
 waiting_for_input = True
@@ -172,8 +200,9 @@ while waiting_for_input:
         print(open_transactions)
     elif user_choice == "2":
         mine_block()
-    elif user_choice == "3":
         open_transactions = []
+        save_data()
+    elif user_choice == "3":
         print_blockchain_elements()
     elif user_choice == "4":
         participant = get_participant()
