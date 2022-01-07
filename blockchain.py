@@ -1,6 +1,7 @@
 # Imports
 from hashlib import sha256
 import json
+import pickle
 from hash_util import find_hash
 from proof_of_work import verify_proof_of_work, proof_of_work
 
@@ -34,6 +35,11 @@ def fetch_data():
         # Remove \n
         blockchain = json.loads(file_content[0][:-1])
         open_transactions = json.loads(file_content[1])
+
+    # This is for saving the blockchain in binary form (not used for reading)
+    with open("binary-data.txt", "wb") as f:
+        all_data = {"blockchain": blockchain, "ot": open_transactions}
+        f.write(pickle.dumps(all_data))
 
 
 def get_last_blockchain_value():
