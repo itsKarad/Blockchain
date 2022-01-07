@@ -18,20 +18,6 @@ MINER_REWARD = 200  # Miner reward for completing PoW
 participants = {"miner"}  # This address gets the reward (for now)
 
 
-def save_data():
-    """
-    Saves blockchain & open_transactions to a text file
-    """
-    with open("data.txt", mode="w") as f:
-        saveable_blockchain = [block.__dict__.copy() for block in blockchain]
-        for block in saveable_blockchain:
-            block["transactions"] = [tx.__dict__ for tx in block["transactions"]]
-        saveable_open_transactions = [tx.__dict__ for tx in open_transactions]
-        f.write(json.dumps(saveable_blockchain))
-        f.write("\n")
-        f.write(json.dumps(saveable_open_transactions))
-
-
 def fetch_data():
     """
     Fetches data upon start from data.txt file
@@ -65,6 +51,20 @@ def fetch_data():
         # File not found
         blockchain = [GENESIS_BLOCK]
         open_transactions = []
+
+
+def save_data():
+    """
+    Saves blockchain & open_transactions to a text file
+    """
+    with open("data.txt", mode="w") as f:
+        saveable_blockchain = [block.__dict__.copy() for block in blockchain]
+        for block in saveable_blockchain:
+            block["transactions"] = [tx.__dict__ for tx in block["transactions"]]
+        saveable_open_transactions = [tx.__dict__ for tx in open_transactions]
+        f.write(json.dumps(saveable_blockchain))
+        f.write("\n")
+        f.write(json.dumps(saveable_open_transactions))
 
 
 def get_last_blockchain_value():
