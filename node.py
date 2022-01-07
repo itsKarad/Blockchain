@@ -4,7 +4,7 @@ from uuid import uuid4
 
 class Node:
     def __init__(self):
-        self.node_id = uuid4()
+        self.node_id = str(uuid4())
         self.chain = Blockchain(self.node_id)
         self.listen_for_input()
 
