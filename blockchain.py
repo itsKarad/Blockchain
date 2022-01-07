@@ -5,6 +5,7 @@ import pickle
 from hash_util import find_hash
 from proof_of_work import verify_proof_of_work, proof_of_work
 from block import Block
+from transaction import Transaction
 from time import time
 
 # Initializing empty blockchain
@@ -22,10 +23,13 @@ def save_data():
     Saves blockchain & open_transactions to a text file
     """
     with open("data.txt", mode="w") as f:
-        saveable_blockchain = [block.__dict__ for block in blockchain]
+        saveable_blockchain = [block.__dict__.copy() for block in blockchain]
+        for block in saveable_blockchain:
+            block["transactions"] = [tx.__dict__ for tx in block["transactions"]]
+        saveable_open_transactions = [tx.__dict__ for tx in open_transactions]
         f.write(json.dumps(saveable_blockchain))
         f.write("\n")
-        f.write(json.dumps(open_transactions))
+        f.write(json.dumps(saveable_open_transactions))
 
 
 def fetch_data():
@@ -40,23 +44,27 @@ def fetch_data():
             # Remove \n
             recovered_blockchain = json.loads(file_content[0][:-1])
             for block in recovered_blockchain:
+                block_transactions = [
+                    Transaction(tx["sender"], tx["recipient"], tx["amount"])
+                    for tx in block["transactions"]
+                ]
                 recovered_block = Block(
                     block["index"],
                     block["previous_hash"],
-                    block["transactions"],
+                    block_transactions,
                     block["nonce"],
                     block["timestamp"],
                 )
                 blockchain.append(recovered_block)
-            open_transactions = json.loads(file_content[1])
+            recovered_open_transactions = json.loads(file_content[1])
+            open_transactions = [
+                Transaction(tx["sender"], tx["recipient"], tx["amount"])
+                for tx in recovered_open_transactions
+            ]
     except:
         # File not found
         blockchain = [GENESIS_BLOCK]
         open_transactions = []
-    # This is for saving the blockchain in binary form (just for fun)
-    with open("binary-data.txt", "wb") as f:
-        all_data = {"blockchain": blockchain, "ot": open_transactions}
-        f.write(pickle.dumps(all_data))
 
 
 def get_last_blockchain_value():
@@ -72,7 +80,7 @@ def verify_transaction(transaction):
     """
     Verifies if transaction is possible with sender's wallet balance
     """
-    if get_balance(transaction["sender"]) >= transaction["amount"]:
+    if get_balance(transaction.sender) >= transaction.amount:
         return True
     return False
 
@@ -85,7 +93,7 @@ def add_transaction(sender, recipient, amount=1.0):
         recipient: address of recipient
         amount: amount of money to send
     """
-    new_transaction = {"sender": sender, "recipient": recipient, "amount": amount}
+    new_transaction = Transaction(sender, recipient, amount)
     if not verify_transaction(new_transaction):
         print("Adding transaction to open_transaction failed!")
         return
@@ -100,11 +108,11 @@ def mine_block():
     Creates a new block, verifies proof of work, rewards miners and adds the block to the blockchain
     """
     previous_block_hash = find_hash(blockchain[-1])
-    reward_transaction = {
-        "sender": "MINING",
-        "recipient": "miner",
-        "amount": MINER_REWARD,
-    }
+    reward_transaction = Transaction(
+        sender="MINING",
+        recipient="miner",
+        amount=MINER_REWARD,
+    )
     print("Started proof of work")
     proof = proof_of_work(open_transactions, previous_block_hash)
     print("Finished proof of work with proof {}".format(proof))
@@ -128,11 +136,11 @@ def get_balance(participant):
     balance = 0.0
     for block in blockchain:
         for transaction in block.transactions:
-            if transaction["recipient"] == participant:
-                balance += transaction["amount"]
+            if transaction.recipient == participant:
+                balance += transaction.amount
                 participant_transactions.append(transaction)
-            if transaction["sender"] == participant:
-                balance -= transaction["amount"]
+            if transaction.sender == participant:
+                balance -= transaction.amount
                 participant_transactions.append(transaction)
     # Not including open transactions in balance of a participant
     return balance

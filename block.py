@@ -1,5 +1,5 @@
 from time import time
-
+from transaction import Transaction
 
 class Block:
     def __init__(self, index, previous_hash, transactions, nonce, timestamp=None):
