@@ -28,15 +28,19 @@ def fetch_data():
     """
     Fetches data upon start from data.txt file
     """
-    with open("data.txt", mode="r") as f:
-        file_content = f.readlines()
-        global blockchain
-        global open_transactions
-        # Remove \n
-        blockchain = json.loads(file_content[0][:-1])
-        open_transactions = json.loads(file_content[1])
-
-    # This is for saving the blockchain in binary form (not used for reading)
+    try:
+        with open("data.txt", mode="r") as f:
+            file_content = f.readlines()
+            global blockchain
+            global open_transactions
+            # Remove \n
+            blockchain = json.loads(file_content[0][:-1])
+            open_transactions = json.loads(file_content[1])
+    except:
+        # File not found
+        blockchain = [GENESIS_BLOCK]
+        open_transactions = []
+    # This is for saving the blockchain in binary form (just for fun)
     with open("binary-data.txt", "wb") as f:
         all_data = {"blockchain": blockchain, "ot": open_transactions}
         f.write(pickle.dumps(all_data))
