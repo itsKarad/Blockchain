@@ -10,7 +10,7 @@ from time import time
 
 # Initializing empty blockchain
 GENESIS_BLOCK = Block(
-    index=0, previous_hash="", transactions=[], nonce="17", timestamp=time()
+    index=0, previous_hash="", transactions=[], nonce="17", timestamp=0
 )
 blockchain = []
 open_transactions = []  # Stores unmined & pending transactions
