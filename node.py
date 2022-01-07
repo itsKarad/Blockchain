@@ -9,6 +9,9 @@ class Node:
         self.listen_for_input()
 
     def listen_for_input(self):
+        """
+        Method to listen to user inputs upon starting the program
+        """
         waiting_for_input = True
         print("Please choose")
         print("1: Add a new transaction value")
@@ -86,4 +89,5 @@ class Node:
         return (sender, recipient, amount)
 
 
+# Initialisation of node upon script execution
 node = Node()
