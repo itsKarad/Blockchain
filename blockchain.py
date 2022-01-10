@@ -22,13 +22,13 @@ class Blockchain:
         """
         Return private blockchain
         """
-        return self.__blockchain
+        return self.__blockchain[:]
 
     def get_open_transactions(self):
         """
         Return private open_transactions
         """
-        return self.__open_transactions
+        return self.__open_transactions[:]
 
     def fetch_data(self):
         """
