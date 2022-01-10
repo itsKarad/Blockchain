@@ -1,6 +1,6 @@
 # Imports
 import json
-from hash_util import find_hash
+from utils.hash_util import find_hash
 from proof_of_work import verify_proof_of_work, proof_of_work
 from block import Block
 from transaction import Transaction
@@ -16,7 +16,7 @@ class Blockchain:
             index=0, previous_hash="", transactions=[], nonce="17", timestamp=0
         )
         self.fetch_data()
-        self.host_id = host_id
+        self.hosting_node = host_id
 
     def get_blockchain(self):
         """
@@ -91,6 +91,7 @@ class Blockchain:
         """
         if self.get_balance(transaction.sender) >= transaction.amount:
             return True
+        print("💵❌ Insufficient funds!")
         return False
 
     def add_transaction(self, sender, recipient, amount=1.0):
@@ -101,19 +102,24 @@ class Blockchain:
             recipient: address of recipient
             amount: amount of money to send
         """
+        if not self.hosting_node:
+            return False
         new_transaction = Transaction(sender, recipient, amount)
         if not self.verify_transaction(new_transaction):
-            print("Adding transaction to open_transaction failed!")
-            return
+            print("❌ Transaction verification failed")
+            return False
         self.participants.add(sender)
         self.participants.add(recipient)
         self.__open_transactions.append(new_transaction)
         self.save_data()
+        return True
 
     def mine_block(self):
         """
         Creates a new block, verifies proof of work, rewards miners and adds the block to the blockchain
         """
+        if not self.hosting_node:
+            return False
         previous_block_hash = find_hash(self.__blockchain[-1])
         reward_transaction = Transaction(
             sender="MINING",
@@ -134,6 +140,7 @@ class Blockchain:
         self.__blockchain.append(new_block)
         self.__open_transactions = []
         self.save_data()
+        return True
 
     def get_balance(self, participant):
         """
@@ -150,6 +157,13 @@ class Blockchain:
                     balance -= transaction.amount
                     participant_transactions.append(transaction)
         # Not including open transactions in balance of a participant
+        for transaction in self.__open_transactions:
+            if transaction.recipient == participant:
+                balance += transaction.amount
+                participant_transactions.append(transaction)
+            if transaction.sender == participant:
+                balance -= transaction.amount
+                participant_transactions.append(transaction)
         return balance
 
     def verify_chain(self):
