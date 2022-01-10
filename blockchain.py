@@ -8,8 +8,8 @@ from transaction import Transaction
 
 class Blockchain:
     def __init__(self, host_id):
-        self.blockchain = []
-        self.open_transactions = []
+        self.__blockchain = []
+        self.__open_transactions = []
         self.MINER_REWARD = 200
         self.participants = {"miner"}
         self.GENESIS_BLOCK = Block(
@@ -17,6 +17,18 @@ class Blockchain:
         )
         self.fetch_data()
         self.host_id = host_id
+
+    def get_blockchain(self):
+        """
+        Return private blockchain
+        """
+        return self.__blockchain
+
+    def get_open_transactions(self):
+        """
+        Return private open_transactions
+        """
+        return self.__open_transactions
 
     def fetch_data(self):
         """
@@ -39,26 +51,28 @@ class Blockchain:
                         block["nonce"],
                         block["timestamp"],
                     )
-                    self.blockchain.append(recovered_block)
+                    self.__blockchain.append(recovered_block)
                 recovered_open_transactions = json.loads(file_content[1])
-                self.open_transactions = [
+                self.__open_transactions = [
                     Transaction(tx["sender"], tx["recipient"], tx["amount"])
                     for tx in recovered_open_transactions
                 ]
         except:
             # File not found
-            self.blockchain = [self.GENESIS_BLOCK]
-            self.open_transactions = []
+            self.__blockchain = [self.GENESIS_BLOCK]
+            self.__open_transactions = []
 
     def save_data(self):
         """
         Saves blockchain & open_transactions to a text file
         """
         with open("data.txt", mode="w") as f:
-            saveable_blockchain = [block.__dict__.copy() for block in self.blockchain]
+            saveable_blockchain = [block.__dict__.copy() for block in self.__blockchain]
             for block in saveable_blockchain:
                 block["transactions"] = [tx.__dict__ for tx in block["transactions"]]
-            saveable_open_transactions = [tx.__dict__ for tx in self.open_transactions]
+            saveable_open_transactions = [
+                tx.__dict__ for tx in self.__open_transactions
+            ]
             f.write(json.dumps(saveable_blockchain))
             f.write("\n")
             f.write(json.dumps(saveable_open_transactions))
@@ -67,9 +81,9 @@ class Blockchain:
         """
         Returns the last value of the current blockchain
         """
-        if len(self.blockchain) < 1:
+        if len(self.__blockchain) < 1:
             return None
-        return self.blockchain[-1]
+        return self.__blockchain[-1]
 
     def verify_transaction(self, transaction):
         """
@@ -93,31 +107,32 @@ class Blockchain:
             return
         self.participants.add(sender)
         self.participants.add(recipient)
-        self.open_transactions.append(new_transaction)
+        self.__open_transactions.append(new_transaction)
         self.save_data()
 
     def mine_block(self):
         """
         Creates a new block, verifies proof of work, rewards miners and adds the block to the blockchain
         """
-        previous_block_hash = find_hash(self.blockchain[-1])
+        previous_block_hash = find_hash(self.__blockchain[-1])
         reward_transaction = Transaction(
             sender="MINING",
             recipient="miner",
             amount=self.MINER_REWARD,
         )
         print("Started proof of work")
-        proof = proof_of_work(self.open_transactions, previous_block_hash)
+        proof = proof_of_work(self.__open_transactions, previous_block_hash)
         print("Finished proof of work with proof {}".format(proof))
-        open_transactions_copy = self.open_transactions[:]
+        open_transactions_copy = self.__open_transactions[:]
         open_transactions_copy.append(reward_transaction)
         new_block = Block(
-            index=len(self.blockchain),
+            index=len(self.__blockchain),
             previous_hash=previous_block_hash,
             transactions=open_transactions_copy,
             nonce=proof,
         )
-        self.blockchain.append(new_block)
+        self.__blockchain.append(new_block)
+        self.__open_transactions = []
         self.save_data()
 
     def get_balance(self, participant):
@@ -126,7 +141,7 @@ class Blockchain:
         """
         participant_transactions = []
         balance = 0.0
-        for block in self.blockchain:
+        for block in self.__blockchain:
             for transaction in block.transactions:
                 if transaction.recipient == participant:
                     balance += transaction.amount
@@ -142,7 +157,7 @@ class Blockchain:
         Verifies if the blockchain is still valid by (a) checking previous_hash for each block (b) Verifying PoW for each block
         """
         prev_hash = find_hash(self.GENESIS_BLOCK)
-        for block in self.blockchain:
+        for block in self.__blockchain:
             if block.index == 0:
                 continue
             if block.previous_hash != prev_hash:

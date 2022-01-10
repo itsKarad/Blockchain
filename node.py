@@ -34,8 +34,6 @@ class Node:
                 )
             elif user_choice == "2":
                 self.chain.mine_block()
-                self.chain.open_transactions = []
-                self.chain.save_data()
             elif user_choice == "3":
                 self.print_blockchain_elements()
             elif user_choice == "4":
@@ -76,7 +74,7 @@ class Node:
         """
         Outputting all blocks in the blockchain
         """
-        for block in self.chain.blockchain:
+        for block in self.chain.get_blockchain():
             print(block)
 
     def get_transaction_details(self):
