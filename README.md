@@ -6,7 +6,10 @@ Wallets are created with their own public - private key pair using PyCryptodome 
 
 Transactions contain digital signatures, so that tampered transactions can be detected. Transactions are signed using private key and verified using public key of a wallet.
 
-Authenticity of the blockchain can be verified using Proof of Work mechanism, where a brute force problem is solved by a node. This problem is hard to solve, but easy to verify. The miner who solves this problem gets a reward of 200 units.
+New blocks are mined or added to the blockchain when a connected node solves a hard computational problem. I have used proof of work as a consensus algorithm. When a node solves this PoW problem, it receives an incentive reward of 200 units.
+
+This computational problem is difficult to solve, but very easy to verify. Hence, it's really to verify authenticity of the chain at each time.
+
 
 ## Basic Features
 
