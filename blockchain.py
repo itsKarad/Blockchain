@@ -10,7 +10,7 @@ class Blockchain:
     def __init__(self, host_id):
         self.__blockchain = []
         self.__open_transactions = []
-        self.MINER_REWARD = 200
+        self.__MINER_REWARD = 200
         self.participants = {"miner"}
         self.GENESIS_BLOCK = Block(
             index=0, previous_hash="", transactions=[], nonce="17", timestamp=0
@@ -124,7 +124,7 @@ class Blockchain:
         reward_transaction = Transaction(
             sender="MINING",
             recipient="miner",
-            amount=self.MINER_REWARD,
+            amount=self.__MINER_REWARD,
         )
         print("Started proof of work")
         proof = proof_of_work(self.__open_transactions, previous_block_hash)

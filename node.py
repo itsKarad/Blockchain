@@ -21,8 +21,9 @@ class Node:
         print("2: Mine blocks")
         print("3: Output the blockchain blocks")
         print("4: Find balance of partipant")
-        print("5: Get all participants")
-        print("6: Create new wallet")
+        print("5: Create new wallet")
+        print("6: Load existing keys")
+        print("7: Save keys")
         print("q: Quit")
         while waiting_for_input:
             print("*" * 40)
@@ -48,11 +49,18 @@ class Node:
                     )
                 )
             elif user_choice == "5":
-                print(self.chain.participants)
-            elif user_choice == "6":
                 # Create new wallet, create keys
                 self.wallet.create_keys()
                 self.chain = Blockchain(self.wallet.public_key)
+                print("💰 Wallet with public key {} created!".format(self.wallet.public_key))
+            elif user_choice == "6":
+                # Load keys from wallet.txt
+                self.wallet.load_keys()
+                print("💰 Wallet with public key {} loaded!".format(self.wallet.public_key))
+                self.chain = Blockchain(self.wallet.public_key)
+            elif user_choice == "7":
+                self.wallet.save_keys()
+                print("💰 Wallet with public key {} saved to wallet.txt".format(self.wallet.public_key))
             elif user_choice == "q":
                 waiting_for_input = False
             else:
