@@ -30,10 +30,21 @@ class Node:
             user_choice = self.get_user_choice()
             if user_choice == "1":
                 transaction_details = self.get_transaction_details()
+                if self.wallet.public_key == None:
+                    print("💸❌ Adding transaction failed, Please connect wallet first!")
+                    continue
+
+                sig = self.wallet.sign_transaction(
+                    sender=self.wallet.public_key,
+                    recipient=transaction_details[0],
+                    amount=transaction_details[1],
+                )
+                print("💸✍🏽 Transaction signature: {}".format(sig))
                 if not self.chain.add_transaction(
-                    transaction_details[0],
-                    transaction_details[1],
-                    transaction_details[2],
+                    sender = self.wallet.public_key,
+                    recipient = transaction_details[0],
+                    amount = transaction_details[1],
+                    sig = sig
                 ):
                     print("💸❌ Adding transaction failed!")
             elif user_choice == "2":
@@ -52,15 +63,25 @@ class Node:
                 # Create new wallet, create keys
                 self.wallet.create_keys()
                 self.chain = Blockchain(self.wallet.public_key)
-                print("💰 Wallet with public key {} created!".format(self.wallet.public_key))
+                print(
+                    "💰 Wallet with public key {} created!".format(
+                        self.wallet.public_key
+                    )
+                )
             elif user_choice == "6":
                 # Load keys from wallet.txt
                 self.wallet.load_keys()
-                print("💰 Wallet with public key {} loaded!".format(self.wallet.public_key))
+                print(
+                    "💰 Wallet with public key {} loaded!".format(self.wallet.public_key)
+                )
                 self.chain = Blockchain(self.wallet.public_key)
             elif user_choice == "7":
                 self.wallet.save_keys()
-                print("💰 Wallet with public key {} saved to wallet.txt".format(self.wallet.public_key))
+                print(
+                    "💰 Wallet with public key {} saved to wallet.txt".format(
+                        self.wallet.public_key
+                    )
+                )
             elif user_choice == "q":
                 waiting_for_input = False
             else:
@@ -97,10 +118,9 @@ class Node:
         """
         Gets user input for sender, recipient and amount for a transaction
         """
-        sender = input("Enter sender address: ")
         recipient = input("Enter recipient address: ")
         amount = float(input("Enter transaction amount: "))
-        return (sender, recipient, amount)
+        return (recipient, amount)
 
 
 if __name__ == "__main__":

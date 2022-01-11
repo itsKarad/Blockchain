@@ -4,6 +4,7 @@ from utils.hash_util import find_hash
 from proof_of_work import verify_proof_of_work, proof_of_work
 from block import Block
 from transaction import Transaction
+from wallet import Wallet
 
 
 class Blockchain:
@@ -41,7 +42,9 @@ class Blockchain:
                 recovered_blockchain = json.loads(file_content[0][:-1])
                 for block in recovered_blockchain:
                     block_transactions = [
-                        Transaction(tx["sender"], tx["recipient"], tx["amount"])
+                        Transaction(
+                            tx["sender"], tx["recipient"], tx["amount"], tx["sig"]
+                        )
                         for tx in block["transactions"]
                     ]
                     recovered_block = Block(
@@ -54,7 +57,7 @@ class Blockchain:
                     self.__blockchain.append(recovered_block)
                 recovered_open_transactions = json.loads(file_content[1])
                 self.__open_transactions = [
-                    Transaction(tx["sender"], tx["recipient"], tx["amount"])
+                    Transaction(tx["sender"], tx["recipient"], tx["amount"], tx["sig"])
                     for tx in recovered_open_transactions
                 ]
         except:
@@ -94,20 +97,27 @@ class Blockchain:
         print("💵❌ Insufficient funds!")
         return False
 
-    def add_transaction(self, sender, recipient, amount=1.0):
+    def add_transaction(self, sender, recipient, amount, sig):
         """
         Adds a transaction to open_transactions list
         Arguments:
             sender: address of sender
             recipient: address of recipient
             amount: amount of money to send
+            sig: digital signature
         """
         if not self.hosting_node:
             return False
-        new_transaction = Transaction(sender, recipient, amount)
+        new_transaction = Transaction(sender, recipient, amount, sig)
+
+        if not Wallet.verify_signature(new_transaction):
+            print("❌ Transaction signature could not be verified!")
+            return False
+
         if not self.verify_transaction(new_transaction):
             print("❌ Transaction verification failed")
             return False
+
         self.participants.add(sender)
         self.participants.add(recipient)
         self.__open_transactions.append(new_transaction)
@@ -123,14 +133,22 @@ class Blockchain:
         previous_block_hash = find_hash(self.__blockchain[-1])
         reward_transaction = Transaction(
             sender="MINING",
-            recipient="miner",
+            recipient=self.hosting_node,
             amount=self.__MINER_REWARD,
+            sig="REWARD",
         )
-        print("Started proof of work")
-        proof = proof_of_work(self.__open_transactions, previous_block_hash)
-        print("Finished proof of work with proof {}".format(proof))
+        for transaction in self.__open_transactions:
+            if not Wallet.verify_signature(transaction):
+                print(
+                    "❌⛏ Transaction signature in open_transactions could not be verified!"
+                )
+                return False
         open_transactions_copy = self.__open_transactions[:]
         open_transactions_copy.append(reward_transaction)
+        print("Started proof of work")
+        proof = proof_of_work(open_transactions_copy, previous_block_hash)
+        print("Finished proof of work with proof {}".format(proof))
+        
         new_block = Block(
             index=len(self.__blockchain),
             previous_hash=previous_block_hash,
@@ -158,12 +176,13 @@ class Blockchain:
                     participant_transactions.append(transaction)
         # Not including open transactions in balance of a participant
         for transaction in self.__open_transactions:
-            if transaction.recipient == participant:
-                balance += transaction.amount
-                participant_transactions.append(transaction)
-            if transaction.sender == participant:
-                balance -= transaction.amount
-                participant_transactions.append(transaction)
+            if Wallet.verify_signature(transaction):
+                if transaction.recipient == participant:
+                    balance += transaction.amount
+                    participant_transactions.append(transaction)
+                if transaction.sender == participant:
+                    balance -= transaction.amount
+                    participant_transactions.append(transaction)
         return balance
 
     def verify_chain(self):
@@ -176,7 +195,8 @@ class Blockchain:
                 continue
             if block.previous_hash != prev_hash:
                 return False
-            if verify_proof_of_work(block.transactions, prev_hash, block.nonce):
+            if not verify_proof_of_work(block.transactions, prev_hash, block.nonce):
+                print("❌🧬 Chain couldn't be verifed!")
                 return False
             prev_hash = find_hash(block)
         return True
