@@ -15,6 +15,8 @@ class Node:
         """
         Method to listen to user inputs upon starting the program
         """
+        if not self.chain.verify_chain():
+            return
         waiting_for_input = True
         print("Please choose")
         print("1: Add a new transaction value")
@@ -41,10 +43,10 @@ class Node:
                 )
                 print("💸✍🏽 Transaction signature: {}".format(sig))
                 if not self.chain.add_transaction(
-                    sender = self.wallet.public_key,
-                    recipient = transaction_details[0],
-                    amount = transaction_details[1],
-                    sig = sig
+                    sender=self.wallet.public_key,
+                    recipient=transaction_details[0],
+                    amount=transaction_details[1],
+                    sig=sig,
                 ):
                     print("💸❌ Adding transaction failed!")
             elif user_choice == "2":
@@ -88,7 +90,6 @@ class Node:
                 print("Input was invalid, please pick a value from the list!")
 
             if not self.chain.verify_chain():
-                print("Invalid blockchain!")
                 waiting_for_input = False
 
         print("Done!")
