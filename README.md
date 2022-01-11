@@ -4,7 +4,7 @@ This is a simple blockchain developed in Python.
 
 Wallets are created with new public-private key pairs using PyCryptodome module.
 
-Transactions contain digital signatures, so that tampered transactions can be detected. Transactions are signed using private key and verified using public key of a wallet.
+Transactions contain digital signatures, so that tampered transactions can be detected. Transactions are signed using the private key and verified using the public key of a wallet.
 
 New blocks are mined or added to the blockchain when a connected node solves a hard computational problem. I have used proof of work as a consensus algorithm. When a node solves this PoW problem, it receives an incentive reward of 200 units.
 
