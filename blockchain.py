@@ -174,7 +174,7 @@ class Blockchain:
                 if transaction.sender == participant:
                     balance -= transaction.amount
                     participant_transactions.append(transaction)
-        # Not including open transactions in balance of a participant
+
         for transaction in self.__open_transactions:
             if Wallet.verify_signature(transaction):
                 if transaction.recipient == participant:
