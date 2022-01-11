@@ -1,6 +1,6 @@
 # Simple Blockchain
 
-This is a simple blockchain developed in Python.
+This is a simple blockchain storing transactions between different wallets.
 
 Wallets are created with new public-private key pairs using PyCryptodome module.
 
