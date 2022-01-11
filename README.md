@@ -2,7 +2,7 @@
 
 This is a simple blockchain developed in Python.
 
-Wallets are created with their own public - private key pair using PyCryptodome module.
+Wallets are created with new public-private key pairs using PyCryptodome module.
 
 Transactions contain digital signatures, so that tampered transactions can be detected. Transactions are signed using private key and verified using public key of a wallet.
 
