@@ -20,3 +20,8 @@ This computational problem is difficult to solve, but very easy to verify. Hence
 5. Creating a new wallet with a new public-private key pair
 6. Loading existing public-private key pair from wallet.txt
 7. Saving public-private key pair to wallet.txt
+
+## How to use?
+1. Download/clone this repo.
+2. Run `pip3install -r requirements.txt` in terminal.
+3. Run `python3 node.py`.
