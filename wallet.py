@@ -84,14 +84,19 @@ class Wallet:
         """
         if transaction.sender == "MINING":
             return True
-        tx_sender_public_key = RSA.importKey(binascii.unhexlify(transaction.sender))
-        verifier = PKCS1_v1_5.new(tx_sender_public_key)
-        transaction_hash = SHA256.new(
-            hashable_transaction(
-                transaction.sender, transaction.recipient, transaction.amount
+        try:
+            tx_sender_public_key = RSA.importKey(binascii.unhexlify(transaction.sender))
+            verifier = PKCS1_v1_5.new(tx_sender_public_key)
+            transaction_hash = SHA256.new(
+                hashable_transaction(
+                    transaction.sender, transaction.recipient, transaction.amount
+                )
             )
-        )
-        return verifier.verify(transaction_hash, binascii.unhexlify(transaction.sig))
+            return verifier.verify(
+                transaction_hash, binascii.unhexlify(transaction.sig)
+            )
+        except:
+            return False
 
 
 if __name__ == "__main__":

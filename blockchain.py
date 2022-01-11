@@ -148,7 +148,7 @@ class Blockchain:
         print("Started proof of work")
         proof = proof_of_work(open_transactions_copy, previous_block_hash)
         print("Finished proof of work with proof {}".format(proof))
-        
+
         new_block = Block(
             index=len(self.__blockchain),
             previous_hash=previous_block_hash,
