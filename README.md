@@ -23,5 +23,7 @@ This computational problem is difficult to solve, but very easy to verify. Hence
 
 ## How to use?
 1. Download/clone this repo.
-2. Run `pip3install -r requirements.txt` in terminal.
-3. Run `python3 node.py`.
+2. Run `docker build .`
+3. Note the image ID from the terminal after running the last command.
+4. Run `docker run -ti <Image ID>`
+
